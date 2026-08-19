@@ -55,7 +55,7 @@ also stands alone — `/enhance-code` on a staged diff is useful without the sur
 |---|---|
 | `test-coverage` | Writes tests for staged changes and audits assertion quality — exact values over vague checks, identity over count, state over status. |
 | `enhance-code` | Scans staged code for correctness, safety, security, performance, and over-engineering. Treats *removal* as a first-class fix. |
-| `review-postgres-schema` | Reviews staged migrations and queries, delegating to Tiger MCP and Supabase guidance for authority. |
+| `review-postgres-schema` | Reviews staged migrations and queries, delegating to `design-postgres-tables` and Supabase guidance for authority. |
 | `review-pr` | Multi-lens PR review against the linked ticket, separating blocking from non-blocking findings. |
 
 ### Shipping
@@ -73,7 +73,6 @@ None of these are bundled. Install what the skills you actually use require.
 
 | Server | Required by | Where to get it |
 |---|---|---|
-| **Tiger** | `database-change-modeler`, `review-postgres-schema` | <https://github.com/timescale/tiger-mcp> |
 | **Tidewave** | `record-demo-video`; `review-postgres-schema` *(optional — falls back to static analysis)* | <https://tidewave.ai> |
 | **Linear** | `create-pr`, `story-loop`, `review-pr` | <https://mcp.linear.app/sse> |
 
@@ -82,8 +81,32 @@ or CLI works — Jira, GitHub issues, `gh`. Linear is just what I use.
 
 ### Third-party skills
 
-One hard dependency: `supabase-postgres-best-practices`, required by `database-change-modeler` and
-`review-postgres-schema` — <https://github.com/supabase/agent-skills>, `skills/postgres-best-practices/`.
+Two hard dependencies, both required by `database-change-modeler` and `review-postgres-schema`:
+
+**Postgres reference skills** — [timescale/pg-aiguide](https://github.com/timescale/pg-aiguide),
+`skills/`. `design-postgres-tables` is the one both skills lean on. `database-change-modeler` also
+uses `postgres-database-migration` for anything touching a populated table, and reaches for
+`design-postgis-tables`, `pgvector-semantic-search`, and `postgres-hybrid-text-search` when a change
+calls for them.
+
+The Tiger MCP server serves this same content through its `view_skill` tool — don't install that
+server just to read it. These are plain Apache-2.0 markdown files in a public repo, so installing
+them directly skips the server, the Tiger Cloud account, and a network round-trip per reference
+file, while staying pinned to the same upstream.
+
+```bash
+npx skills add timescale/pg-aiguide
+```
+
+That prompts for which skills to install; `--skill design-postgres-tables` installs a single one
+non-interactively. Take only the five named above. Leave pg-aiguide's TimescaleDB skills
+(`setup-timescaledb-hypertables`, `find-hypertable-candidates`,
+`migrate-postgres-tables-to-hypertables`) alone — hypertables are a Tiger product feature, not
+stock Postgres. Skip its `postgres` index skill too: it's a router, and one of its sections points
+at a third-party managed-database product.
+
+**`supabase-postgres-best-practices`** — <https://github.com/supabase/agent-skills>,
+`skills/postgres-best-practices/`.
 
 The rest of what I keep installed, for reference — no skill here needs them:
 
