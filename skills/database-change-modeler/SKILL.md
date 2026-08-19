@@ -33,22 +33,26 @@ Use this skill when the user asks to model, design, plan, review, or reason abou
 
 Use external database guidance to augment local codebase analysis.
 
-### Tiger MCP
+### Postgres reference skills
 
-Use the Tiger MCP server for database modeling guidance. Call the available Tiger MCP tools in the current agent environment, such as `tiger_view_skill`, `tiger_search_docs`, or their MCP-equivalent names.
+Invoke these by name via the Skill tool for modeling guidance. They are third-party skills
+installed separately — see the Dependencies section of the my-agentic-workflow README. Skip any
+that are not installed and note the gap rather than guessing.
 
-| Need | Tiger MCP Guidance |
+| Need | Skill |
 | --- | --- |
-| General PostgreSQL modeling | View `postgres` or `design-postgres-tables` |
-| Table design, data types, constraints, indexes | View `design-postgres-tables` |
-| Time-series, events, metrics, logs, append-heavy data | View `setup-timescaledb-hypertables` |
-| Existing schema analysis for TimescaleDB candidates | View `find-hypertable-candidates` when relevant |
-| PostGIS or location/spatial data | View `design-postgis-tables` |
-| Vector embeddings, semantic search, RAG | View `pgvector-semantic-search` |
-| Hybrid keyword and semantic search | View `postgres-hybrid-text-search` |
-| Authoritative docs lookup | Use `tiger_search_docs` |
+| Table design, data types, constraints, indexes | `design-postgres-tables` |
+| Migration safety, DDL locks, timeouts, backfills, rollback planning | `postgres-database-migration` |
+| PostGIS or location/spatial data | `design-postgis-tables` |
+| Vector embeddings, semantic search, RAG | `pgvector-semantic-search` |
+| Hybrid keyword and semantic search | `postgres-hybrid-text-search` |
 
-Do not use live database execution tools, such as `tiger_db_execute_query`, unless the user explicitly authorizes live database inspection or execution.
+Load `postgres-database-migration` whenever the change touches an existing populated table, and use
+it to inform the `Data Migration / Backfill` and `Recommended Migration Order` sections of the
+output. One caveat: its Fork-Based Migration Testing section claims only two named providers support
+fast forking. Disregard that vendor list. Recommend whatever the project actually has for testing
+against real data — a restored `pg_dump`, the platform's own branching, a staging copy — and keep
+the section's real lesson, which is that an empty test database proves nothing about a migration.
 
 ### Supabase Postgres Best Practices
 
@@ -61,14 +65,14 @@ Use `supabase-postgres-best-practices` to augment Postgres runtime and performan
 - Concurrency and locking
 - Connection and data access patterns
 
-When Tiger MCP and Supabase guidance overlap, prefer Tiger MCP for schema/table design and Supabase guidance for runtime, operational, and performance concerns.
+When the Postgres reference skills and Supabase guidance overlap, prefer the reference skills for schema/table design and migration mechanics, and Supabase guidance for runtime, operational, and performance concerns.
 
 ## Workflow
 
 1. Restate the requested database change and product/business reason.
 2. Inspect the existing schema, migrations, ORM schemas/models, contexts/services, and relevant queries when available.
 3. Identify affected tables, relationships, constraints, indexes, write paths, read paths, and data migration needs.
-4. Use Tiger MCP and Supabase Postgres guidance as relevant.
+4. Use the Postgres reference skills and Supabase Postgres guidance as relevant.
 5. Prefer the smallest correct schema change.
 6. Separate schema migration, data backfill, and application rollout steps when safety requires it.
 7. Call out assumptions, risks, tradeoffs, and open questions.
@@ -92,7 +96,7 @@ When Tiger MCP and Supabase guidance overlap, prefer Tiger MCP for schema/table 
 - For large existing tables, recommend phased migrations when needed.
 - For unique constraints on nullable or conditional data, consider partial unique indexes.
 - For tenant-scoped data, include tenant/user/account ownership in table design and indexes.
-- For time-series, events, metrics, logs, or append-heavy tables, evaluate whether TimescaleDB hypertables are appropriate.
+- For time-series, events, metrics, logs, or append-heavy tables, evaluate native declarative partitioning, BRIN indexes on the time column, and a retention strategy.
 - For search, geospatial, or vector use cases, call out specialized index types and extensions.
 - For destructive changes, explicitly identify data loss risk and safer alternatives.
 

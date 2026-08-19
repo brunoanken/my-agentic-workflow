@@ -17,6 +17,54 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-08-19 — Postgres guidance comes from skills; Tiger MCP and TimescaleDB dropped
+
+`database-change-modeler` and `review-postgres-schema` read their schema-design guidance through
+Tiger MCP's `view_skill` tool, which meant standing up an MCP server and a Tiger Cloud account just
+to read reference markdown. That content is public, Apache-2.0, and installable on its own from
+[timescale/pg-aiguide](https://github.com/timescale/pg-aiguide) — so both skills now invoke it by
+name via the Skill tool instead. Same upstream, one less moving part.
+
+TimescaleDB went out with it. Hypertables are a Tiger product feature rather than stock Postgres,
+and nothing in this setup runs them.
+
+### Added
+
+- Dependency: the pg-aiguide Postgres reference skills, required by `database-change-modeler` and
+  `review-postgres-schema` — `npx skills add timescale/pg-aiguide`. Five of them only:
+  `design-postgres-tables`, `postgres-database-migration`, `design-postgis-tables`,
+  `pgvector-semantic-search`, `postgres-hybrid-text-search`. All five are generic Postgres or
+  open-source-extension knowledge.
+- `database-change-modeler` now consults `postgres-database-migration` for DDL lock levels, timeout
+  and retry patterns, batched backfills, and rollback planning, feeding its `Data Migration /
+  Backfill` and `Recommended Migration Order` sections. The skill was always producing a migration
+  order without a migration-specific source behind it. Its Fork-Based Migration Testing section
+  names two providers as the only ones supporting fast forking; the modeler is told to disregard
+  that list and recommend whatever the project actually has.
+
+### Changed
+
+- `review-postgres-schema` — invokes `design-postgres-tables` by name instead of calling
+  `mcp__tiger__view_skill`.
+- `database-change-modeler` — same swap for every design skill it references. Its Modeling Rules
+  line on time-series and append-heavy tables now points at native declarative partitioning, BRIN
+  indexes on the time column, and a retention strategy. The design concern was worth keeping; the
+  hypertable answer to it was not.
+
+### Removed
+
+- **Tiger MCP**, as a dependency of anything here — not required, not optional. The pg-aiguide
+  skills replaced `view_skill`, and `database-change-modeler` no longer calls `search_docs`: live
+  doc search is the one thing that genuinely needs the server, and it doesn't justify an MCP server
+  plus a cloud account on its own. Reach for `WebFetch` against the Postgres docs instead. Note the
+  README row had pointed at `timescale/tiger-mcp`, which 404s — the server actually lives at
+  [timescale/tiger-cli](https://github.com/timescale/tiger-cli).
+- Hypertable guidance from `database-change-modeler` — the `setup-timescaledb-hypertables` and
+  `find-hypertable-candidates` rows. TimescaleDB-specific.
+- The `postgres` index skill reference from `database-change-modeler`. It's a router, and its
+  "Database Management" section sends the reader to a third-party managed-database product;
+  `design-postgres-tables` already covers what the row was there for.
+
 ## 2026-08-14 — Initial import
 
 `skills/` becomes the source of truth. Previously these lived unversioned in

@@ -1,6 +1,6 @@
 ---
 name: review-postgres-schema
-description: Analyze git staged code for PostgreSQL migrations, schema changes, and queries. Delegates to Tiger MCP and supabase-postgres-best-practices for authoritative guidance. Framework-agnostic.
+description: Analyze git staged code for PostgreSQL migrations, schema changes, and queries. Delegates to design-postgres-tables and supabase-postgres-best-practices for authoritative guidance. Framework-agnostic.
 metadata:
   author: brunozaninello
   version: "1.0.0"
@@ -14,9 +14,8 @@ Analyze staged changes affecting PostgreSQL database structure and queries. This
 
 Before analyzing, load these references:
 
-1. **Tiger MCP - design-postgres-tables** (PRIMARY for schema/table design): Call `mcp__tiger__view_skill` with:
-   - `skill_name`: `"design-postgres-tables"`
-   - `path`: `""`
+1. **design-postgres-tables** (PRIMARY for schema/table design): invoke the
+   `design-postgres-tables` skill by name via the Skill tool.
 
    Covers: data types, constraints, indexing strategies, partitioning, JSONB, table design patterns, anti-patterns.
 
@@ -25,11 +24,13 @@ Before analyzing, load these references:
 
    Covers: query performance, connection management, security/RLS, concurrency/locking, data access patterns, monitoring.
 
-   This is a third-party skill installed separately — see the Dependencies section of the
-   my-agentic-workflow README. If it is not installed, proceed with Tiger MCP guidance alone
-   and note the gap in your findings.
+Both are third-party skills installed separately — see the Dependencies section of the
+my-agentic-workflow README. If either is missing, proceed with the other and note the gap in
+your findings.
 
-**Priority**: When sources overlap (data types, indexes, schema design), prefer Tiger MCP guidance. Use Supabase skill primarily for query patterns, connection handling, and runtime concerns.
+**Priority**: When sources overlap (data types, indexes, schema design), prefer
+`design-postgres-tables`. Use the Supabase skill primarily for query patterns, connection
+handling, and runtime concerns.
 
 Cite which source informed each finding.
 
@@ -145,7 +146,7 @@ Within each impact level, order findings from most to least impactful.
 ### High Impact
 
 - **[Index] `migrations/001_create_orders.sql:5`** — FK `user_id` has no index. JOINs and CASCADE operations cause full table scans.
-  - Source: Tiger MCP design-postgres-tables ("FK indexes: PostgreSQL does not auto-index FK columns")
+  - Source: design-postgres-tables ("FK indexes: PostgreSQL does not auto-index FK columns")
   - Fix: `CREATE INDEX ON orders (user_id);`
 
 - **[Migration Safety] `migrations/003_add_status.sql:2`** — Adding `NOT NULL` column without `DEFAULT` on a populated table. Migration will fail or lock the table for a full rewrite.
@@ -155,11 +156,11 @@ Within each impact level, order findings from most to least impactful.
 ### Medium Impact
 
 - **[Schema] `migrations/001_create_orders.sql:3`** — Using `SERIAL` instead of `IDENTITY`. SERIAL has ownership and permission edge cases.
-  - Source: Tiger MCP ("use BIGINT GENERATED ALWAYS AS IDENTITY")
+  - Source: design-postgres-tables ("use BIGINT GENERATED ALWAYS AS IDENTITY")
   - Fix: `id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY`
 
 ### Low Impact
 
 - **[Schema] `migrations/001_create_orders.sql:8`** — Column `order_name` uses `VARCHAR(255)` instead of `TEXT`. No performance benefit in PostgreSQL.
-  - Source: Tiger MCP design-postgres-tables
+  - Source: design-postgres-tables
   - Fix: Use `TEXT` with a `CHECK (length(order_name) <= 255)` if a limit is needed.
