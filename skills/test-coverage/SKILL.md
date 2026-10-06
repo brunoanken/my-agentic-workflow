@@ -3,7 +3,7 @@ name: test-coverage
 description: Write tests for staged changes and audit test assertion quality. Analyzes the staged diff, finds existing coverage to extend, writes e2e/integration tests that mimic real user workflows, and holds every assertion to an exact-value bar (identity over count, state over status). Its defaults yield to prompt-level instructions and project conventions in CLAUDE.md/AGENTS.md. Use when adding test coverage, reviewing existing tests, or strengthening weak assertions.
 metadata:
   author: Bruno Zaninello
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Test Coverage
@@ -87,6 +87,7 @@ user or the project asks you to.
 | Visibility only (UI) — `expect(el).toBeVisible()` | Assert exact text content |
 | Arbitrary wait (UI) — `waitForTimeout(2000)` | Wait on a specific condition, then assert it |
 | Filter tested only positively | Assert the expected items **and** the exclusions |
+| Control located by CSS or `data-testid` (UI) — `page.click('#submit')` | Locate it by role and accessible name — `getByRole('button', { name: 'Submit' })` — so the test also fails when the control loses its name |
 
 Two rules that follow from the table and are worth stating outright:
 
@@ -101,6 +102,7 @@ Two rules that follow from the table and are worth stating outright:
 - What models, services, endpoints, or UI were added
 - Which existing features the change affects
 - The user-facing behavior and business rules it supports
+- If the change implements a user story with an **Accessibility** section, each of its criteria needs a test, the same as any other acceptance criterion
 
 At the same time, collect the constraints that override this skill's defaults:
 - Re-read the user's prompt for scope limits ("unit tests only", "just audit", "don't touch existing tests")
@@ -221,7 +223,7 @@ Integration and e2e tests run against shared databases. Isolate to avoid flakes 
 ## Context-Specific Guidance
 
 - **API and database tests** — see [API_ASSERTIONS.md](./API_ASSERTIONS.md): CRUD assertions, derived-state and multi-entity verification, list/filter/ordering/pagination, database state, audit fields
-- **UI and Playwright tests** — see [UI_ASSERTIONS.md](./UI_ASSERTIONS.md): data display, visual state, user flows, forms and validation, navigation
+- **UI and Playwright tests** — see [UI_ASSERTIONS.md](./UI_ASSERTIONS.md): locators, data display, visual state, user flows, forms and validation, navigation, accessibility (focus, keyboard, announcements)
 
 ## Audit Report Format
 

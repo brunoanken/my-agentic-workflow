@@ -1,6 +1,6 @@
 ---
 name: enhance-code
-description: Scan the code staged in git and search for improvements across correctness, safety, security, performance, maintainability, and over-engineering. Covers bugs, unhandled edge cases, race conditions, security vulnerabilities, N+1 queries, DRY violations, magic strings, speculative abstractions, and scope creep beyond the user story — with removal as a first-class fix. Reports findings grouped by impact.
+description: Scan the code staged in git and search for improvements across correctness, safety, security, performance, accessibility, maintainability, and over-engineering. Covers bugs, unhandled edge cases, race conditions, security vulnerabilities, N+1 queries, web a11y defects in changed UI, DRY violations, magic strings, speculative abstractions, and scope creep beyond the user story — with removal as a first-class fix. Reports findings grouped by impact.
 ---
 
 # Enhance Code
@@ -28,8 +28,9 @@ Analyze **changed code** (staged or unstaged) and the **full files containing th
 2. **Find the scope anchor**: If this work corresponds to a user story or PRD (look in `docs/YYYY_MM_DD_*/` for `user-stories.md` / `prd.md`, or ask the user which one), read it. The story's acceptance criteria and the PRD's Non-Goals define intended scope. Flag any implemented behavior, endpoint, field, or flexibility the story didn't ask for — especially anything listed in the PRD's Non-Goals — as an over-engineering finding, with removal as the default recommendation. If no anchor document exists, judge over-engineering on general merit.
 3. **REQUIRED — Invoke specialized skills**: Before any analysis, check changed file types:
    - If ANY `.tsx`, `.jsx` files or JSX/React patterns are present: you MUST invoke `/vercel-react-best-practices` FIRST. Do NOT proceed to step 4 until this skill has been invoked and its guidelines applied.
-   - This covers: re-render optimization, bundle size, server components, data fetching patterns
-4. **Analyze each changed file**: Review against every category below — correctness, safety, security, performance, maintainability, and over-engineering. Read the full file if needed for context.
+     - This covers: re-render optimization, bundle size, server components, data fetching patterns
+   - If the diff touches web UI — components, templates, stylesheets, or client code handling focus or keyboard events: you MUST invoke `/review-accessibility` in review mode. It returns findings rather than fixing them; fold them into this report under the Accessibility category and fix them in step 7 with everything else.
+4. **Analyze each changed file**: Review against every category below — correctness, safety, security, performance, accessibility, maintainability, and over-engineering. Read the full file if needed for context.
 5. **Check for type and lint errors**: Run the project's type checker and linter on the changed files. Fix any errors found.
 6. **Report findings**: Present issues grouped by impact (high → low), not by file
 7. **Fix issues**: After presenting findings, fix each issue starting from the highest impact
@@ -70,6 +71,10 @@ The analysis must cover all of the following areas. Every finding should map to 
 - Redundant computations, network calls, or DB round trips
 - Unnecessary re-renders, large bundles, or blocking work on the critical path
 
+### Accessibility
+Delegated to `review-accessibility` (step 3) — use its findings, impact rubric, and `[A11y: …]` tags
+as-is rather than re-deriving them. Only in scope when the diff touches web UI.
+
 ### Maintainability
 - **DRY violations**: Duplicated logic that should be extracted
 - **Magic strings/numbers**: Hardcoded values that should be constants
@@ -109,7 +114,7 @@ Use these three impact levels:
 **Low Impact** — Nice to have. Examples: minor refactors, naming improvements, small DRY cleanups, magic strings to constants, small over-engineering cleanups (unused parameters, single-use helpers), idiomatic rewrites.
 
 For each finding:
-1. Category tag (e.g., `[Security]`, `[Correctness]`, `[Performance]`, `[Safety]`, `[Maintainability]`, `[Over-engineering]`)
+1. Category tag (e.g., `[Security]`, `[Correctness]`, `[Performance]`, `[Safety]`, `[A11y: Focus]`, `[Maintainability]`, `[Over-engineering]`)
 2. File and line reference in `path:line` format
 3. Brief description of the issue and why it matters (impact on codebase/product)
 4. Recommended fix

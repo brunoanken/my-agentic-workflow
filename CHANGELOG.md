@@ -17,6 +17,62 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-10-06 — Accessibility built in from the start, via `review-accessibility`
+
+Accessibility had no real place in the flow. The UI story template had an *optional*
+"Accessibility Notes" section that got skipped, `enhance-code` had no a11y category, and
+`test-coverage` defaulted to `data-testid` locators that pass even when a button has no name. So
+a11y only came up if a reviewer happened to notice — after the code was written, when a missing
+focus-return means rework.
+
+The fix runs at both ends of every UI story. Up front, the story gets testable a11y acceptance
+criteria and names the repo's existing accessible primitives to reuse. After implementation, the
+diff gets reviewed against those criteria. Both modes live in one hand-written skill. WCAG guidance
+comes from a third-party skill rather than being rewritten here.
+
+Choosing the upstream: `addyosmani/web-quality-skills`'s `accessibility` — WCAG 2.2 AA, cites
+success criteria, has an evidence-led Lighthouse/axe workflow, MIT, widely installed. Considered
+and passed on:
+- `jakubkrehel/better-accessibility` — strong review rubric, but hands contrast and typography to
+  two more sibling skills.
+- `ibelick/fixing-accessibility` — no WCAG references.
+- `anthropics/knowledge-work-plugins/accessibility-review` — WCAG 2.1, and lists 2.5.5 (AAA) as AA.
+- `web-design-guidelines` (already installed) — overlaps, but has no WCAG references, no license,
+  and fetches its rules at runtime.
+
+React Native is deliberately out of scope. No dependable RN a11y skill exists, and the ones that do
+have API errors.
+
+### Added
+
+- `review-accessibility` — web a11y in two modes. **Requirements** turns a UI story into testable
+  criteria (role + accessible name + WCAG SC) scaled to what the story actually builds. **Review**
+  checks the diff, grouped by impact, and fixes it: native elements over ARIA, the repo's
+  primitives over hand-rolled ones, no new dependencies. When `enhance-code` or `review-pr` calls
+  it, it returns findings and lets the caller own the report.
+- Dependency: `accessibility` from addyosmani/web-quality-skills, required by `review-accessibility`.
+- Dependency (optional): Chrome DevTools MCP, for a Lighthouse audit and accessibility-tree
+  snapshot when a dev server is already running.
+
+### Changed
+
+- `write-user-stories` — **Accessibility** is now a mandatory UI story section (it was optional
+  "Accessibility Notes"), filled by `review-accessibility` in requirements mode. Each criterion gets
+  a test scenario. A story with no new surface says so in one line.
+- `story-loop` — for UI items, research carries the story's a11y criteria forward, or derives them
+  when the source has no stories. The research brief names the primitives to reuse. The acceptance
+  check now covers a11y criteria. No new gate: the review side runs inside `enhance-code`.
+- `enhance-code` — invokes `review-accessibility` when the diff touches web UI and folds its
+  findings into the report under a new Accessibility category.
+- `review-pr` — the UX lens now includes accessibility. A new a11y defect that blocks a task for
+  keyboard or screen-reader users counts as a new bug, so it's blocking. The code-quality lens skips
+  `enhance-code`'s a11y pass so it isn't reviewed twice.
+- `test-coverage` — role and label locators (`getByRole`, `getByLabel`) are the default for
+  anything interactive, with `data-testid` kept for content that has no role or name. The Bar gains
+  a row for it. `UI_ASSERTIONS.md` gains an Accessibility Assertions section (focus return,
+  keyboard-only flows, live-region announcements, a scoped axe scan if the project already has
+  axe), and validation errors are asserted via `toHaveAccessibleDescription`.
+
 ## 2026-08-25 — `review-simplifications` added
 
 Wanted a skill that specifically hunts for simplification opportunities — cleaner code for

@@ -3,7 +3,7 @@ name: write-user-stories
 description: Transform a PRD into sequenced, implementation-ready user stories with test specifications. Use this skill after write-prd has produced a PRD and you need actionable stories before implementation.
 metadata:
   author: Bruno Zaninello
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Write User Stories
@@ -56,6 +56,10 @@ Both templates sit in this skill's own directory, alongside this file.
 You only need to read each template once per session (not once per story), but you must read it before writing the first story of that type.
 
 Follow the template's mandatory sections exactly. Include optional sections only when they apply.
+
+For each UI story, invoke the `review-accessibility` skill via the Skill tool in requirements mode,
+handing it the story's interaction flow and visual states. Its output fills the template's
+**Accessibility** section and adds scenarios to the Test Plan.
 
 ### Step 4: Sequence the Stories
 
@@ -130,6 +134,7 @@ Create the file at `docs/YYYY_MM_DD_feature_name/user-stories.md` using the same
 
 - **Improvising story sections** — Read the template file. Every time
 - **Writing tests as "verify it works"** — Specify exact assertions: status codes, field values, UI text, state changes
+- **Accessibility as an afterthought** — Every UI story gets its Accessibility section before implementation, not a review finding after it
 - **Backward dependencies** — Story 5 should never depend on Story 7. Re-sequence if this happens
 - **Mixing UI and backend in one story** — Split them. Backend first, UI depends on it
 - **Skipping the traceability matrix** — Every requirement must be accounted for

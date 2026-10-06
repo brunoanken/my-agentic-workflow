@@ -35,6 +35,11 @@ write-prd  →  write-user-stories  →  story-loop
 `story-loop` orchestrates the quality gates itself, so running it invokes most of the others. Each
 also stands alone — `/enhance-code` on a staged diff is useful without the surrounding machinery.
 
+`review-accessibility` isn't a step of its own in that chain — it runs at both ends of every UI
+story instead. Up front, `write-user-stories` (or `story-loop`'s research step, for sources without
+stories) uses it to turn the story into testable a11y acceptance criteria. Afterwards,
+`enhance-code` and `review-pr` call it as a lens on the diff.
+
 ### Planning
 
 | Skill | What it does |
@@ -57,6 +62,7 @@ also stands alone — `/enhance-code` on a staged diff is useful without the sur
 | `enhance-code` | Scans staged code for correctness, safety, security, performance, and over-engineering. Treats *removal* as a first-class fix. |
 | `review-simplifications` | Simplification only, no bug-hunting: applies no-tradeoff cleanups directly, presents structural alternatives (data structures, state handling, module boundaries) as options instead of picking one. Skips DB schema/migrations/queries — that's `review-postgres-schema`'s job. |
 | `review-postgres-schema` | Reviews staged migrations and queries, delegating to `design-postgres-tables` and Supabase guidance for authority. |
+| `review-accessibility` | Web a11y (WCAG 2.2 AA) at both ends of a UI story: derives testable acceptance criteria before implementation, reviews and fixes the diff after. Prefers native elements and the repo's own primitives over added ARIA. Delegates WCAG guidance to `accessibility`. Web only. |
 | `review-pr` | Multi-lens PR review against the linked ticket, separating blocking from non-blocking findings. |
 
 ### Shipping
@@ -76,16 +82,18 @@ None of these are bundled. Install what the skills you actually use require.
 |---|---|---|
 | **Tidewave** | `record-demo-video`; `review-postgres-schema` *(optional — falls back to static analysis)* | <https://tidewave.ai> |
 | **Linear** | `create-pr`, `story-loop`, `review-pr` | <https://mcp.linear.app/sse> |
+| **Chrome DevTools** | `review-accessibility` *(optional — adds a Lighthouse audit and accessibility-tree snapshot when a dev server is already running; falls back to static review)* | <https://github.com/ChromeDevTools/chrome-devtools-mcp> |
 
 Where a skill mentions an issue tracker generically (`review-pr`, `create-pr`), any equivalent MCP
 or CLI works — Jira, GitHub issues, `gh`. Linear is just what I use.
 
 ### Third-party skills
 
-Two hard dependencies, both required by `database-change-modeler` and `review-postgres-schema`:
+Hard dependencies:
 
 **Postgres reference skills** — [timescale/pg-aiguide](https://github.com/timescale/pg-aiguide),
-`skills/`. `design-postgres-tables` is the one both skills lean on. `database-change-modeler` also
+`skills/`. Required by `database-change-modeler` and `review-postgres-schema`;
+`design-postgres-tables` is the one both skills lean on. `database-change-modeler` also
 uses `postgres-database-migration` for anything touching a populated table, and reaches for
 `design-postgis-tables`, `pgvector-semantic-search`, and `postgres-hybrid-text-search` when a change
 calls for them.
@@ -107,7 +115,19 @@ stock Postgres. Skip its `postgres` index skill too: it's a router, and one of i
 at a third-party managed-database product.
 
 **`supabase-postgres-best-practices`** — <https://github.com/supabase/agent-skills>,
-`skills/postgres-best-practices/`.
+`skills/postgres-best-practices/`. Required by `review-postgres-schema`.
+
+**`accessibility`** — [addyosmani/web-quality-skills](https://github.com/addyosmani/web-quality-skills),
+`skills/accessibility/`. Required by `review-accessibility`, which makes it a dependency of
+`write-user-stories`, `story-loop`, `enhance-code`, and `review-pr` for any UI work. WCAG 2.2 AA,
+MIT. Without it, `review-accessibility` falls back to its own WCAG knowledge and says so.
+
+```bash
+npx skills add addyosmani/web-quality-skills --skill accessibility
+```
+
+Take only `accessibility`. The repo's other skills (performance, SEO, Core Web Vitals) aren't used
+here.
 
 The rest of what I keep installed, for reference — no skill here needs them:
 

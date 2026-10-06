@@ -59,16 +59,30 @@ Follow the test plan structure defined in the main SKILL.md:
 - **Edge cases** — Unusual inputs, boundary conditions
 - **What NOT to test** — Explicitly scoped out
 
+Each accessibility criterion in section 8 gets a scenario here, written with role and label locators.
+
+### 8. Accessibility
+Produced by the `review-accessibility` skill in requirements mode — invoke it via the Skill tool
+rather than writing this section from memory. These are acceptance criteria: the story isn't done
+until they hold.
+
+- **Criteria** — Testable statements naming the role and accessible name a test locates the element
+  by. Example: "After activating *Delete invoice*, focus is inside `dialog` named *Delete INV-001?*;
+  Escape closes it and focus returns to the *Delete invoice* button." Cite the WCAG 2.2 success
+  criterion each one comes from.
+- **Primitives to reuse** — The repo's existing accessible components and helpers (dialog, form
+  field, announcer) that satisfy the criteria, with file paths.
+
+Scale it to the story: one new button gets one or two criteria. If the story adds no interactive or
+visual surface, write "No new interactive or visual surface."
+
 ## Optional Sections
 
 Include these only when they apply to this specific story. Omit entirely if not applicable.
 
-### 8. Component Reuse
+### 9. Component Reuse
 - **Existing components to use** — File paths to components that should be reused
 - **New components to create** — Components that need to be built for this story
-
-### 9. Accessibility Notes
-Keyboard navigation requirements, screen reader behavior, ARIA attributes, focus management, or color contrast considerations.
 
 ### 10. Edge Cases
 Unusual user behaviors, boundary inputs, concurrent actions, or race conditions that the implementation should handle.

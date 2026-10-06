@@ -1,9 +1,9 @@
 ---
 name: review-pr
-description: Multi-lens PR review (DB/perf, code quality, completeness vs linked issue, test quality, UX) that verifies the PR against its linked ticket by default and separates blocking issues (unjustified scope gaps, new bugs/edge cases, over-engineering) from non-blocking findings, with shared context fetched once and lenses gated by what actually changed. Use when asked to review a GitHub pull request in depth.
+description: Multi-lens PR review (DB/perf, code quality, completeness vs linked issue, test quality, UX and accessibility) that verifies the PR against its linked ticket by default and separates blocking issues (unjustified scope gaps, new bugs/edge cases, over-engineering) from non-blocking findings, with shared context fetched once and lenses gated by what actually changed. Use when asked to review a GitHub pull request in depth.
 metadata:
   author: brunozaninello
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Review PR
@@ -58,7 +58,7 @@ Otherwise, fan out (step 3b).
 
 ### 3a. Direct review (small PRs / few applicable lenses)
 
-Work through each in-scope lens's checklist yourself (definitions in step 3b below apply equally here — just run them as your own analysis instead of a subagent prompt), invoking the relevant sub-skill inline where it applies (`/review-postgres-schema`, `/enhance-code`, `/test-coverage` in audit-only mode) only for lenses actually in scope. Produce the final markdown directly, grouped Blocking/Non-Blocking per step 3c's format — there's nothing to dedup since it's a single pass. Skip to step 4.
+Work through each in-scope lens's checklist yourself (definitions in step 3b below apply equally here — just run them as your own analysis instead of a subagent prompt), invoking the relevant sub-skill inline where it applies (`/review-postgres-schema`, `/enhance-code`, `/test-coverage` in audit-only mode, `/review-accessibility` for the UX lens) only for lenses actually in scope. Produce the final markdown directly, grouped Blocking/Non-Blocking per step 3c's format — there's nothing to dedup since it's a single pass. Skip to step 4.
 
 ### 3b. Fan out (single message, one Agent tool call per in-scope lens)
 
@@ -79,7 +79,7 @@ Do not run the test suite, linter, typechecker, or build — assume CI catches t
 
 **a. Database modeling & performance** (only if in scope per step 2). Review query patterns, indexes, table/schema changes, N+1s, missing indexes on new foreign keys or filter columns, migration safety (locking, backfills on large tables), and any new/modified query on existing tables. Use the `/review-postgres-schema` skill (or repo-specific DB review skill) to augment this. Performance issues here are always worth reporting, even if minor — say so explicitly and let severity reflect actual impact rather than dropping them.
 
-**b. Code quality & conventions** (always in scope). How well do the added/modified lines follow this codebase's existing patterns (see the convention-doc paths in the shared context) and idiomatic practice for its language/framework. Use the `/enhance-code` skill to aid this. Skip anything a linter/typechecker/formatter would catch. This lens is not about making the code perfect — findings here are non-blocking by nature (idiom/style mismatches, not the three blocking criteria from the intro); report them, but they should never end up in the Blocking group.
+**b. Code quality & conventions** (always in scope). How well do the added/modified lines follow this codebase's existing patterns (see the convention-doc paths in the shared context) and idiomatic practice for its language/framework. Use the `/enhance-code` skill to aid this, minus its accessibility pass when the UX lens is in scope — that lens owns accessibility. Skip anything a linter/typechecker/formatter would catch. This lens is not about making the code perfect — findings here are non-blocking by nature (idiom/style mismatches, not the three blocking criteria from the intro); report them, but they should never end up in the Blocking group.
 
 **c. Completeness, correctness & right-sizing against the linked issue** (always in scope — most important lens, give this the most care; also carries all three blocking criteria, so judge it thoroughly). Read what the issue actually asks for, what the PR description claims, and what the diff actually does. You also get the convention-doc paths from the shared context — use them for the right-sizing judgment below.
 
@@ -90,6 +90,8 @@ Do not run the test suite, linter, typechecker, or build — assume CI catches t
 **d. Test quality** (only if in scope per step 2). Give this lens the full shared diff, unfiltered. Are the added/modified tests' assertions strong (exact values, not vague truthy checks) and do they cover the critical/crucial branches of the new *and existing* code touched by this diff, not just the happy path — this requires seeing the source changes, not just the test file. Use the `/test-coverage` skill to aid this, in audit-only mode ("just audit, don't write anything" — stop after its Step 3, no new tests). Read-only — do not execute the suite.
 
 **e. UX issues** (only if in scope per step 2). Trim this lens's diff to hunks touching user-facing files (components, routes/pages, client-visible UI) — keep the full PR description and linked issue as-is, just filter the diff itself. Look for inconsistencies, unhandled edge cases, or rough interaction flows introduced by this change.
+
+Accessibility is part of this lens: invoke the `/review-accessibility` skill in review mode on the trimmed diff, read-only — it returns findings, it doesn't fix them. If the linked issue or story has an Accessibility section, unmet criteria there are coverage gaps like any other. An a11y defect this diff introduces that blocks a task for keyboard or screen-reader users (`review-accessibility`'s High impact) is a new bug, so it's **blocking**; its Medium and Low findings are non-blocking.
 
 ### 3c. Dedup and score
 

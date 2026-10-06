@@ -3,7 +3,7 @@ name: story-loop
 description: Run an autonomous implementation loop over a source of work — a user-stories doc, a PRD, a Linear issue, PR review findings, or a backend PR whose frontend impact must be derived. Resolves a run contract up front (scope, git policy, time tracking, PR self-review, autonomy), normalizes the source into an ordered work list, then drives research → implement → quality gates → verify → commit → PR → self-review-and-fix per item via sub-agents, logging decisions and open questions as it goes. Use when asked to work through stories autonomously, run the story loop, or implement a doc end to end.
 metadata:
   author: Bruno Zaninello
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # Story Loop
@@ -144,6 +144,13 @@ small and make a dead session resumable.
    wait for anything upstream to merge first.
 2. **Research** — read-only `Explore` sub-agent for anything non-trivial. Require concrete code
    excerpts with `file:line` refs so you never re-read the files yourself.
+   - **UI items: accessibility is part of research, not a later gate.** If the item already has an
+     Accessibility section (stories written by `write-user-stories`), the brief carries its criteria
+     forward. If it doesn't (review findings, a Linear ticket, an inline list), the research sub-agent
+     invokes `/review-accessibility` in requirements mode to derive them. Either way, the brief names
+     the repo's existing accessible primitives (dialog, form field, announcer) with `file:line`, so
+     the implementer reuses them instead of rebuilding them. Treat the derived criteria as part of
+     the item's acceptance criteria from here on.
 3. **Implement** — `general-purpose` sub-agent, handed the research brief directly.
 4. **Stage** — `git add`.
 5. **Schema gate** *(only if the diff touches migrations, schema, or queries)* — sub-agent invokes
@@ -158,7 +165,8 @@ small and make a dead session resumable.
    "park, don't halt" rule and move to the next independent item rather than stopping the session.
 8. **Enhance** — sub-agent invokes `/enhance-code`. Apply findings. Stage.
 9. **Acceptance check** — sub-agent compares the staged diff against this item's acceptance criteria
-   and reports what's unmet. Fix gaps. Do not narrow the item to make it pass.
+   — including its accessibility criteria for UI items — and reports what's unmet. Fix gaps. Do not
+   narrow the item to make it pass.
 10. **Re-verify** if steps 8–9 changed code.
 11. **Update the source doc's own status convention** (status column, header, checkbox) if it has one.
 12. **Commit** — one conventional commit for the item, or a small number of them. Skip if the git
