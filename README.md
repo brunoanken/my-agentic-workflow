@@ -89,6 +89,11 @@ or CLI works — Jira, GitHub issues, `gh`. Linear is just what I use.
 
 ### Third-party skills
 
+Install these **globally** with `-g -a claude-code`. Without `-g`, the `skills` CLI installs into the
+current project — run from this repo's checkout, that vendors third-party skills into this repo,
+which is exactly what it's set up to avoid. With `-g`, the CLI writes each skill to
+`~/.agents/skills/` and symlinks it into `~/.claude/skills/`.
+
 Hard dependencies:
 
 **Postgres reference skills** — [timescale/pg-aiguide](https://github.com/timescale/pg-aiguide),
@@ -104,7 +109,7 @@ them directly skips the server, the Tiger Cloud account, and a network round-tri
 file, while staying pinned to the same upstream.
 
 ```bash
-npx skills add timescale/pg-aiguide
+npx skills add timescale/pg-aiguide -g -a claude-code
 ```
 
 That prompts for which skills to install; `--skill design-postgres-tables` installs a single one
@@ -123,17 +128,25 @@ at a third-party managed-database product.
 MIT. Without it, `review-accessibility` falls back to its own WCAG knowledge and says so.
 
 ```bash
-npx skills add addyosmani/web-quality-skills --skill accessibility
+npx skills add addyosmani/web-quality-skills --skill accessibility -g -a claude-code
 ```
 
 Take only `accessibility`. The repo's other skills (performance, SEO, Core Web Vitals) aren't used
 here.
 
+**`vercel-react-best-practices`** — [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills),
+`skills/react-best-practices/`. Required by `enhance-code`, which must invoke it before analyzing
+any diff containing JSX/TSX — and so by `story-loop` and `review-pr` for React work.
+
+```bash
+npx skills add vercel-labs/agent-skills --skill vercel-react-best-practices -g -a claude-code
+```
+
 The rest of what I keep installed, for reference — no skill here needs them:
 
 | Source | Skills |
 |---|---|
-| [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | `vercel-react-best-practices` (`skills/react-best-practices/`), `vercel-react-native-skills` (`skills/react-native-skills/`), `web-design-guidelines` |
+| [vercel-labs/agent-skills](https://github.com/vercel-labs/agent-skills) | `vercel-react-native-skills` (`skills/react-native-skills/`), `web-design-guidelines` |
 | [vercel-labs/skills](https://github.com/vercel-labs/skills) | `find-skills` |
 | [expo/skills](https://github.com/expo/skills) | `building-native-ui`, `native-data-fetching` — both under `plugins/expo-app-design/` |
 | [tigrisdata/skills](https://github.com/tigrisdata/skills) | `conventional-commits`, `installing-tigris-storage`, `tigris-bucket-management`, `tigris-object-operations`, `tigris-snapshots-forking` |

@@ -17,6 +17,19 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-10-06 — README install fixes
+
+### Changed
+
+- Third-party install commands now pass `-g -a claude-code`. Without `-g` the `skills` CLI installs
+  into the current project, so running the README's commands from this repo's checkout vendored
+  third-party skills into it.
+
+### Added
+
+- Dependency: `vercel-react-best-practices`, required by `enhance-code` for any JSX/TSX diff. It was
+  already required but listed under "no skill here needs them" — an unrecorded dependency.
+
 ## 2026-10-06 — Accessibility built in from the start, via `review-accessibility`
 
 Accessibility had no real place in the flow. The UI story template had an *optional*
