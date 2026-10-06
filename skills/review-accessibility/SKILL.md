@@ -3,7 +3,7 @@ name: review-accessibility
 description: Web accessibility (WCAG 2.2 AA) at both ends of a change. Requirements mode turns a UI story or feature into testable a11y acceptance criteria before any code is written; review mode checks the staged diff's components, templates, and styles for a11y defects, reports them grouped by impact, and fixes them. Delegates WCAG guidance to the third-party `accessibility` skill. Use when writing or researching a UI story, when reviewing frontend changes, or when asked about accessibility, a11y, keyboard or screen-reader support, focus management, contrast, or WCAG. Web only — not React Native.
 metadata:
   author: Bruno Zaninello
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Review Accessibility
@@ -122,10 +122,31 @@ the index or working tree state. Use read-only commands (`git diff --staged`, `g
    heading order, table headers, lists). For contrast, resolve design tokens to actual values where
    the theme files allow; where they don't (runtime themes), mark the finding *needs rendered check*
    rather than guessing a ratio.
+   Also check **component APIs** the diff adds or changes — see below.
 6. **Run the project's a11y linter** (`eslint-plugin-jsx-a11y` or equivalent) on the changed files if
    it's configured.
 7. **Report**, in the format below.
 8. **Fix**, highest impact first, unless a calling skill owns fixing (see below).
+
+### Component APIs
+
+A component that forwards accessibility attributes to an element should accept them under their
+native names — `aria-label`, `aria-describedby` — not renamed props like `ariaLabel`. Type them from
+React's own types (`React.AriaAttributes`, or `ComponentPropsWithoutRef<'button'>` for a component
+wrapping a button) and pass them through. That matches React DOM and component libraries (Radix,
+React Aria, MUI), so consumers don't learn a per-component dialect, and an attribute nobody
+anticipated (`aria-describedby` added later) works without a component change.
+
+Before flagging, check what the prop actually does:
+
+- **Passed straight to one element** (`aria-label={ariaLabel}`) → it's an aria attribute. Accept it
+  as `aria-label`.
+- **Also builds visible text or other names** (`Search {ariaLabel}`, `` `${ariaLabel} — selected` ``)
+  → it's a label, not an aria attribute. Rename it `label`; renaming it `aria-label` would be wrong.
+
+Low impact. Only flag props the diff adds or changes — renaming every existing component from an
+unrelated diff is scope creep. If the repo consistently uses its own convention, follow it and note
+the deviation once rather than per component.
 
 ### Fix discipline
 
@@ -160,13 +181,14 @@ announced; an SPA route change that leaves focus on the old link; targets under 
 heading levels; animation that ignores `prefers-reduced-motion`.
 
 **Low Impact** — Nice to have. Examples: redundant ARIA duplicating native semantics; `aria-label`
-repeating visible text; decorative images with non-empty `alt`; AAA-only improvements.
+repeating visible text; decorative images with non-empty `alt`; a new component prop that renames
+a standard aria attribute (`ariaLabel`); AAA-only improvements.
 
 For each finding:
 
 1. Category tag — `[A11y: Keyboard]`, `[A11y: Names & Roles]`, `[A11y: Focus]`, `[A11y: Forms]`,
    `[A11y: Announcements]`, `[A11y: Contrast]`, `[A11y: Structure]`, `[A11y: Motion]`,
-   `[A11y: Target Size]`, `[A11y: Over-engineering]`
+   `[A11y: Target Size]`, `[A11y: Component API]`, `[A11y: Over-engineering]`
 2. File and line in `path:line` format
 3. What a user can't do, and the WCAG success criterion it fails
 4. The fix, naming the repo primitive to reuse where one exists
@@ -194,3 +216,10 @@ For each finding:
 - **[A11y: Over-engineering] `src/invoices/InvoiceFilters.tsx:22`** — `<button role="button"
   aria-label="Apply">Apply</button>`: both attributes restate what the element already provides.
   - Delete `role` and `aria-label`.
+
+- **[A11y: Component API] `src/ui/Segmented.tsx:18`** — New prop `ariaLabel?: string` is passed
+  straight to `aria-label` on the group. Callers must learn this component's spelling of a standard
+  attribute, and no other aria attribute can reach the element.
+  - Accept `aria-label` instead, typed via `Pick<React.AriaAttributes, 'aria-label'>`, and pass it
+    through. (Contrast `SearchMultiSelect`'s `ariaLabel`, which also renders "Search {ariaLabel}" —
+    that one is a label and should become `label`.)

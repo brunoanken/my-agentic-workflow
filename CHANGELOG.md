@@ -17,6 +17,24 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-10-06 — `review-accessibility` checks component aria props
+
+Came out of a PR review nit: custom components took `ariaLabel` instead of `aria-label`. React DOM
+and component libraries use the native names, and typing them from React's own types lets any aria
+attribute through, not just the one someone anticipated. The rule went into `review-accessibility`
+rather than `enhance-code`: `enhance-code`'s React guidance is performance-focused, and it already
+calls `review-accessibility` for every UI diff, as does `review-pr`.
+
+The rule distinguishes two cases. A prop passed straight through is an aria attribute and should
+use the native name. A prop that also builds visible text or other names is a label and should be
+called `label`. A blanket "use hyphens" rule gets the second case wrong.
+
+### Changed
+
+- `review-accessibility` — new **Component APIs** check: new or changed components that forward
+  accessibility attributes accept them as `aria-*` props. Low impact, only for props the diff adds
+  or changes. A repo's own consistent convention wins. Adds the `[A11y: Component API]` tag.
+
 ## 2026-10-06 — README install fixes
 
 ### Changed
