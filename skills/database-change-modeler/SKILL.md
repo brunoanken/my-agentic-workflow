@@ -49,9 +49,9 @@ that are not installed and note the gap rather than guessing.
 
 Load `postgres-database-migration` whenever the change touches an existing populated table, and use
 it to inform the `Data Migration / Backfill` and `Recommended Migration Order` sections of the
-output. One caveat: its Fork-Based Migration Testing section claims only two named providers support
-fast forking. Disregard that vendor list. Recommend whatever the project actually has for testing
-against real data — a restored `pg_dump`, the platform's own branching, a staging copy — and keep
+output. One caveat: its Fork-Based Migration Testing section names specific vendors — for database
+forking and for production traffic mirroring. Treat them as examples, not recommendations.
+Recommend whatever the project actually has for testing against real data — a restored `pg_dump`, the platform's own branching, a staging copy — and keep
 the section's real lesson, which is that an empty test database proves nothing about a migration.
 
 ### Supabase Postgres Best Practices
