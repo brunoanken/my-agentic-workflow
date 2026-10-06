@@ -17,6 +17,33 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-08-25 — `review-simplifications` added
+
+Wanted a skill that specifically hunts for simplification opportunities — cleaner code for
+the current approach, but also structural alternatives (different data structure, different
+state-handling strategy, different module boundary) — and presents them rather than quietly
+picking one. Neither existing skill fit: `simplify` (built-in) auto-applies mechanical
+cleanups with no presentation step, and `enhance-code` bundles over-engineering findings
+alongside bugs/security/performance, which is the opposite of a narrowly-scoped pass. Kept
+it as its own skill rather than folding into either — mixing "propose options and wait" into
+`enhance-code`'s "scan and fix everything" model would have changed its interaction contract
+for every other category it covers.
+
+The two-tier split (apply directly vs. present as options) came out of a live example: a
+reorder/dedup loop was rewritten to two list comprehensions for readability, then verified
+against the existing test suite before calling it done. That verification step is now a hard
+requirement in the skill, not a courtesy — a change that reads as behavior-preserving can
+still break something a quick read won't surface (object identity, exception type, ordering),
+which is exactly what happened on the first pass of that same example.
+
+### Added
+
+- `review-simplifications` — simplification-only review of changed code. Applies
+  no-tradeoff wins directly (re-verified against tests/lint/types after each one); writes up
+  anything with a real tradeoff — architecture, data structure, state handling — as 2-3
+  labeled options instead of choosing. Explicitly excludes database schema, migrations, and
+  query design, deferring those to `database-change-modeler` / `review-postgres-schema`.
+
 ## 2026-08-19 — Postgres guidance comes from skills; Tiger MCP and TimescaleDB dropped
 
 `database-change-modeler` and `review-postgres-schema` read their schema-design guidance through

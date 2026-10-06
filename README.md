@@ -27,7 +27,7 @@ They're built to chain:
 ```
 write-prd  →  write-user-stories  →  story-loop
                                         │
-                    per story: test-coverage → enhance-code
+                    per story: test-coverage → enhance-code → review-simplifications
                                → review-postgres-schema (if schema touched)
                                → create-pr → review-pr
 ```
@@ -55,6 +55,7 @@ also stands alone — `/enhance-code` on a staged diff is useful without the sur
 |---|---|
 | `test-coverage` | Writes tests for staged changes and audits assertion quality — exact values over vague checks, identity over count, state over status. |
 | `enhance-code` | Scans staged code for correctness, safety, security, performance, and over-engineering. Treats *removal* as a first-class fix. |
+| `review-simplifications` | Simplification only, no bug-hunting: applies no-tradeoff cleanups directly, presents structural alternatives (data structures, state handling, module boundaries) as options instead of picking one. Skips DB schema/migrations/queries — that's `review-postgres-schema`'s job. |
 | `review-postgres-schema` | Reviews staged migrations and queries, delegating to `design-postgres-tables` and Supabase guidance for authority. |
 | `review-pr` | Multi-lens PR review against the linked ticket, separating blocking from non-blocking findings. |
 
