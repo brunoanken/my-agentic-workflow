@@ -17,6 +17,33 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-10-07 — `story-loop` runs its sub-agents as bb threads and reports to a board
+
+I run `story-loop` inside bb. Its sub-agents were `Agent` tool calls inside the orchestrator's own
+session, so bb never saw them, and I couldn't open, watch or steer a worker. Inside bb they're now
+child threads nested under the orchestrator, and the run's progress goes to my Story Loop bb
+plugin's board. Outside bb, nothing changes.
+
+Smoke-testing the dispatch showed that a child going idle doesn't mean it's finished. A child that
+backgrounds a command ends its turn with an interim message, then wakes up when the command
+finishes. So the brief tells the child to stay in the foreground and end with a `## Summary`
+heading, and the orchestrator treats an idle child without that heading as unfinished.
+
+### Changed
+
+- `story-loop` (1.4.0) — new **Dispatching a sub-agent** section with two paths: the `Agent` tool
+  outside bb, `bb thread spawn` / `wait` / `output` inside it. Waits are capped at 9 minutes because
+  the Bash tool kills foreground commands at 10. An errored child gets one retry. A child that goes
+  idle before its summary is either blocked on a question (park it per `DECISIONS.md`) or nudged
+  with `bb thread tell`. New **Reporting to the Story Loop board** section maps the loop steps to
+  `bb loop` calls. Reporting is best-effort and never stops the loop. The board's run id goes in
+  `progress.md` so a resumed session can `adopt` it. `INTAKE.md`, `DECISIONS.md` and `REVIEW.md`
+  each gained a short pointer.
+
+### Added
+
+- Dependency (optional): the `bb` CLI and the Story Loop bb plugin, both for `story-loop`.
+
 ## 2026-10-06 — `review-accessibility` checks component aria props
 
 Came out of a PR review nit: custom components took `ariaLabel` instead of `aria-label`. React DOM

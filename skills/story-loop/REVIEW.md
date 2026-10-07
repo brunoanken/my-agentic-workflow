@@ -23,6 +23,9 @@ Dispatch a sub-agent that invokes `/review-pr <pr-number>` and writes the full r
 `<work-folder>/reviews/<item-id>-pr<N>.md`. It returns only the finding list (the two grouped
 blocks), not the reasoning behind them.
 
+On the Story Loop board (inside bb), this pass is the `review` phase and the fix sub-agent in step 3
+is `fix`. The gates step 3 re-runs are later rounds of their own phases, not new phases.
+
 Two overrides on `/review-pr` that the sub-agent must be told explicitly, because they contradict
 that skill's own defaults:
 

@@ -159,6 +159,16 @@ The rest of what I keep installed, for reference — no skill here needs them:
 
 - `git`
 - [`gh`](https://cli.github.com) — required by `create-pr` and `review-pr`
+- `bb` — optional, for `story-loop`. It's on `PATH` inside [bb](https://getbb.app) threads. When
+  `story-loop` runs in a bb thread, it dispatches its sub-agents as bb child threads nested under
+  the orchestrator thread. Without bb, it uses Claude Code's `Agent` tool.
+
+### bb plugins
+
+**Story Loop** (plugin id `story-loop`, adds `bb loop`) — optional, for `story-loop`. Inside bb, the
+skill reports each run's items, phase rounds, PRs and decisions to the plugin's board. Without it,
+the skill skips reporting; `progress.md` and the decisions doc are unaffected. It's my own plugin,
+installed from a local checkout with `bb plugin install <path>`.
 
 ## Changelog
 

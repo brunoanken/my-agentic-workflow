@@ -31,6 +31,10 @@ If it doesn't exist yet, create it. Never silently skip logging because there's 
 Write for a reader who wasn't in the session — enough context and insight to decide without
 re-deriving anything. **This doc is a deliverable, not a scratchpad.**
 
+Inside bb with the Story Loop board, each entry also gets a one-line `bb loop note` — decision,
+`question` or `blocker` — and a parked item is marked `parked` on the board. See `SKILL.md`'s
+"Reporting to the Story Loop board". The board mirrors this doc; it never replaces it.
+
 ## Non-blocking — the default, and the overwhelming majority
 
 If you can pick a defensible option and keep the work correct and reversible: **log it and proceed.**

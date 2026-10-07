@@ -112,6 +112,10 @@ per angle (by API client module, by route/page, by shared type, by test file). O
 explorer is cheaper but has a real miss rate here, and this is the one phase in the whole skill
 where breadth beats depth. Use judgment; default to a single explorer for a small diff.
 
+Inside bb, the explorers are child threads (see `SKILL.md`'s "Dispatching a sub-agent"). Because
+they're read-only, they're the one case where children run at once: spawn them all, then wait on
+each.
+
 ## What intake does not do
 
 - It doesn't implement anything.

@@ -3,7 +3,7 @@ name: story-loop
 description: Run an autonomous implementation loop over a source of work — a user-stories doc, a PRD, a Linear issue, PR review findings, or a backend PR whose frontend impact must be derived. Resolves a run contract up front (scope, git policy, time tracking, PR self-review, autonomy), normalizes the source into an ordered work list, then drives research → implement → quality gates → verify → commit → PR → self-review-and-fix per item via sub-agents, logging decisions and open questions as it goes. Use when asked to work through stories autonomously, run the story loop, or implement a doc end to end.
 metadata:
   author: Bruno Zaninello
-  version: "1.3.0"
+  version: "1.4.0"
 ---
 
 # Story Loop
@@ -42,6 +42,16 @@ up and fix all findings, not just blocking ones
 
 Anything not settled by the text gets asked once, in Step 0. Anything still unsettled takes the
 documented default.
+
+## Inside bb
+
+Check once, at the start: you're in bb when `BB_THREAD_ID` is set and `bb status` succeeds. If not,
+ignore this section and every "inside bb" note below — the skill runs exactly as written. If so:
+
+1. Sub-agents run as bb child threads, nested under this thread in bb's sidebar — see
+   [Dispatching a sub-agent](#dispatching-a-sub-agent).
+2. If `bb loop --help >/dev/null 2>&1` succeeds (the Story Loop plugin is installed), report the run
+   to its board — see [Reporting to the Story Loop board](#reporting-to-the-story-loop-board).
 
 ---
 
@@ -137,7 +147,9 @@ explicitly left open. (This is narrower than general ambiguity; see `DECISIONS.m
 
 Every numbered step below that says "sub-agent" means: write the brief to a file in the work folder,
 dispatch a sub-agent with the path, and keep only its summary. Briefs-as-files keep your context
-small and make a dead session resumable.
+small and make a dead session resumable. How to dispatch:
+[Dispatching a sub-agent](#dispatching-a-sub-agent). Inside bb, report each step to the board as
+you go — see [Reporting to the Story Loop board](#reporting-to-the-story-loop-board).
 
 1. **Branch** — per the git policy. `branch-pr` checks out a fresh branch for this item only, cut
    from the previous item's branch (stacked); `branch-pr-from-trunk` cuts it from the trunk. Do not
@@ -207,6 +219,75 @@ Then move to the next item, or stop if scope was a single item.
 
 ---
 
+## Dispatching a sub-agent
+
+**Outside bb** — the `Agent` tool, with the sub-agent type the step names (`Explore`,
+`general-purpose`), handed the brief's path.
+
+**Inside bb** — a bb child thread instead, so each worker can be opened, watched and steered:
+
+```sh
+bb thread spawn --project "$BB_PROJECT_ID" --parent-self \
+  --environment "$BB_ENVIRONMENT_ID" --lifecycle-owner-thread "$BB_THREAD_ID" \
+  --title "S3 · Verify" --prompt-file "<work-folder>/briefs/S3-verify.md" --json   # → {id, ...}
+bb thread wait <id> --timeout 9m --json   # → {matched: true} once the child is idle
+bb thread output <id> --json              # → {output}: the child's final message
+```
+
+- **Title** `<item key> · <Phase>`, adding ` (r2)` for later rounds, so the sidebar reads as the
+  pipeline.
+- **Same checkout, one at a time.** `--environment` puts the child in this checkout, so git state
+  carries between phases. Never run two children that write files at once.
+- **Model.** The child inherits this thread's provider, model and permission mode. Research could
+  take a cheaper `--model`; don't change it by default.
+- **Every brief ends with the same instructions.** Read-only, when the step names `Explore`. Don't
+  ask questions or wait for approval — make the call and note it in the summary. Run commands in
+  the foreground, and don't end the turn until the work is done. Finish with a short `## Summary`:
+  what was done, files touched, commands run with pass/fail, anything unresolved. That message is
+  all `bb thread output` returns, and all you keep.
+- **Never wait longer than 9m in one call** — the Bash tool kills a foreground command at 10
+  minutes. On timeout, read `.thread.status` from `bb thread show <id> --json`: `error` →
+  `bb thread retry <id>` once and wait again, then treat a second error as a failed phase under the
+  step's own rules; anything else (`active`, `starting`, `pending`) → wait again.
+- **Idle isn't always done.** A child also goes idle when it backgrounds a command or blocks on a
+  question. If its output has no `## Summary`: a pending interaction in `bb thread interactions
+  list <id> --json` is a blocking ambiguity — handle it under `DECISIONS.md`'s "park, don't halt"
+  rule. Otherwise wait again; if it's still idle with no summary, `bb thread tell <id> "Finish the
+  work, then reply with the ## Summary the brief asks for."` and wait.
+
+## Reporting to the Story Loop board
+
+Inside bb, when `bb loop` is available. The board shows a card per item with each phase's rounds
+linked to the thread that did them, plus the PR, open questions and decisions — but only what you
+report. `bb loop --help` and `bb loop <command> --help` are the contract. Every call finds the run
+from this thread; no run id is passed around.
+
+**Best-effort.** If a call fails, read its hint and fix it once; otherwise move on. Reporting never
+stops or slows the loop, and never replaces `progress.md` or the decisions doc.
+
+- **Start** — once, right after the contract is echoed and the work list is final:
+  `bb loop start --title … --source … --work-folder … --json`, with one `--contract key=value` per
+  knob (scope, git, timing, review, autonomy) and one `--item "KEY=Title"` per item, in order. Keys
+  are 1–24 of `[A-Za-z0-9._-]`, e.g. `S3`. Record the run id in `progress.md`. Items added or
+  retitled later: `bb loop items add "KEY=Title"`.
+- **Phases** — `bb loop phase <key> <phase> running --thread <child id>` right after spawning, then
+  `done` or `failed` with a one-line `--note` when it returns. Steps map to phases: 2 `research`,
+  3 `implement`, 5 `schema`, 6 `tests`, 7 `verify` (a failed round is `failed`, then `running`
+  again), 8 `enhance`, 9 `acceptance`, 10 the next `verify` round, 12 `commit` and 13 `pr` (yours —
+  no `--thread`), 14 `review` for `/review-pr` and `fix` for applying findings; the gates it
+  re-runs are later rounds of their own phases. Steps that don't run aren't reported.
+- **Item** — step 1: `bb loop item <key> --branch <b>`. Step 15: `bb loop item <key> done --pr <url>`.
+- **Decisions** — mirror the decisions doc, one line per entry: `bb loop note "<text>" --item <key>`
+  for a decision, `--kind question` for an open non-blocking question. A parked item gets
+  `bb loop item <key> parked --note "<why>"` plus a `--kind blocker` note. An answered question:
+  `bb loop resolve <note-id>`.
+- **Resume** — a fresh session resuming the run calls `bb loop adopt <run-id>` (from `progress.md`)
+  before anything else.
+- **Finish** — the end-of-session summary calls `bb loop finish` when the scope is worked through
+  (parked items included), or `bb loop finish --status stopped` when the session ends early.
+
+---
+
 ## Autonomy
 
 Once the contract is resolved and the item confirmed, **run the entire loop without further
@@ -232,7 +313,9 @@ rest of the loop without asking again.
 Always close with a short summary: decisions made autonomously (so they can be overruled), open
 non-blocking questions, **any batched blocking questions from parked items**, follow-up work
 logged, and a link to the decisions doc. Do this whether or not you were ever blocked, and whether
-or not the run completed. Don't ask permission to post updates or comments — just do it.
+or not the run completed. Don't ask permission to post updates or comments — just do it. Inside bb,
+close the board's run as part of it (`bb loop finish`, see
+[Reporting to the Story Loop board](#reporting-to-the-story-loop-board)).
 
 ## References
 
