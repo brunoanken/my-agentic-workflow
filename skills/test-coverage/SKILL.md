@@ -3,7 +3,7 @@ name: test-coverage
 description: Write tests for staged changes and audit test assertion quality. Analyzes the staged diff, finds existing coverage to extend, writes e2e/integration tests that mimic real user workflows, and holds every assertion to an exact-value bar (identity over count, state over status). Its defaults yield to prompt-level instructions and project conventions in CLAUDE.md/AGENTS.md. Use when adding test coverage, reviewing existing tests, or strengthening weak assertions.
 metadata:
   author: Bruno Zaninello
-  version: "2.2.0"
+  version: "2.3.0"
 ---
 
 # Test Coverage
@@ -94,6 +94,22 @@ Two rules that follow from the table and are worth stating outright:
 - **Identity beats count.** Count passes on stale data, coincidental matches from unrelated tests, and silently-failed setup. Store IDs at creation and verify them in the response. Count is a secondary assertion.
 - **Don't trust the response alone.** An API can echo back a value it never persisted. Re-query the database for anything that mutated.
 
+**Test our code, not the library.** Like the table, this holds whatever the test shape — "mimic
+real user behavior" is no reason to drive a library's behavior through our components. Apply
+the **ownership test** to every assertion: *if our code changed and the library didn't, could
+this assertion fail?* If only a library bug could make it fail, don't write it.
+
+- **Through the library is fine.** Test what we hand it and what we do with what it returns: our config, the options we build, our callbacks, our conditional rendering, our promises about its behavior.
+- **A wrapper's promises are tested once, in the wrapper's test file.** Documented behavior of our wrapper around a library belongs to the wrapper, not to every component that uses it. If the wrapper's test doesn't really exercise a promise, fix it there.
+- **When unclear, don't write it.** If you can't easily tell whether the behavior is ours or the library's, and settling it isn't worth the time, skip the test.
+
+Example: a component wraps a combobox library and groups options into sections. A test that
+arrows from the last option of one section to the first of the next covers the library's
+keyboard navigation (or the wrapper's promise about it), not the component. The component's
+tests pin what it owns: which options go in which section, the labels, the section order.
+
+This rule only removes tests. It never lowers the bar for the ones that stay.
+
 ## Workflow
 
 ### Step 1 — Read the change and the ground rules
@@ -124,6 +140,7 @@ Categorize by severity:
 - **Critical** — passes without verifying the behavior at all: no body assertions after a mutation, missing state verification on money or other irreversible data, count-only checks on the thing the test exists to prove
 - **Warning** — incomplete: status without body, existence without value, related entities unverified
 - **Suggestion** — could be sharper: add before/after comparison, verify more fields, cover an edge case
+- **Removal candidate** — fails the ownership test (see **The Bar**): only a library bug could make it fail, or it re-tests a wrapper's promise outside the wrapper's test file
 
 Report findings before changing anything (format below).
 
@@ -196,7 +213,7 @@ test "invoice lifecycle" { ... }
 
 ### Step 6 — Self-audit
 
-Before reporting done, re-read the tests you just wrote against **The Bar**. Writing tests and grading them are the same standard — apply it to your own work.
+Before reporting done, re-read the tests you just wrote against **The Bar**. Writing tests and grading them are the same standard — apply it to your own work. Delete any test or assertion that fails the ownership test.
 
 ### Step 7 — Report
 

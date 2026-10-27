@@ -94,7 +94,7 @@ as-is rather than re-deriving them. Only in scope when the diff touches web UI.
 - **Defensive code for impossible states**: Validating inputs already guaranteed by the caller, gate, or schema layer
 - **Noise**: Over-broad try/except, logging nobody will read, comments restating the code
 - **Compat shims with no consumers**: Backwards-compatibility paths for code nothing calls
-- **Redundant tests**: Tests that test the framework, or duplicate other tests rather than the story's behavior
+- **Redundant tests**: Tests that duplicate other tests rather than the story's behavior, or that test a library instead of our use of it. Apply the ownership test: *if our code changed and the library didn't, could this assertion fail?* If only a library bug could make it fail — or it's unclear whether the behavior is ours or the library's — remove it; this is an exception to the question-first rule below
 - **Premature optimization**: Caching, batching, or tuning with no evidence of need
 
 **Removal findings need higher scrutiny than additive ones** — deleting a guard someone needed is worse than leaving a redundant one. Before recommending deletion, grep for call sites and other consumers to confirm nothing depends on it. If the scope anchor is silent on whether something is needed, flag it as a question for the user rather than removing it.
