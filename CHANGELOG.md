@@ -17,6 +17,32 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-10-27 — Comment rules for every session, and tests that don't test libraries
+
+Agents over-comment, explaining what the code does instead of why. That's a rule for every session,
+not just when a skill loads, so it lives in a new `global/` directory, imported from
+`~/.claude/CLAUDE.md` rather than symlinked.
+
+Separately, a PR review caught a test that only exercised a UI library's keyboard navigation
+through our wrapper. `test-coverage` wrote it, so the fix went there, with `enhance-code` as the
+backstop.
+
+### Added
+
+- `global/COMMENTS.md` — comment the why, never the what. Prefer small end-of-line or line-above
+  comments next to the code over big header blocks. Imported from `~/.claude/CLAUDE.md`; see
+  README Install.
+
+### Changed
+
+- `test-coverage` (2.3.0) — The Bar gains an ownership test: *if our code changed and the library
+  didn't, could this assertion fail?* If not, don't write the test. A wrapper's promises are
+  tested once, in the wrapper's test file, and when ownership is unclear the test isn't written.
+  Step 3 flags failing tests as removal candidates and Step 6 applies the same check.
+- `enhance-code` — "Redundant tests" uses the same ownership test and removes unclear cases
+  rather than raising them as questions. "Noise" now flags what-not-why comments and large
+  comment blocks.
+
 ## 2026-10-07 — `story-loop` runs its sub-agents as bb threads and reports to a board
 
 I run `story-loop` inside bb. Its sub-agents were `Agent` tool calls inside the orchestrator's own

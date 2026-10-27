@@ -22,6 +22,7 @@ installed skill. Reading the file is never how a skill gets invoked.
 
 ```
 skills/          One directory per hand-written skill; SKILL.md plus any reference files
+global/          Always-on instruction files, imported from ~/.claude/CLAUDE.md
 install.sh       Symlinks skills into ~/.claude/skills/
 README.md        Public-facing docs, including the Dependencies section
 ```
@@ -39,6 +40,10 @@ The repo is the source of truth. `install.sh` creates symlinks:
 
 Edits made anywhere are edits to the repo. Never copy skills into `~/.claude/skills/` — a copy
 drifts silently, and the drift is invisible until the two disagree.
+
+Files in `global/` aren't symlinked. `~/.claude/CLAUDE.md` imports each one by path from the
+clone (`@~/<clone>/global/<FILE>.md`), so they load in every session. Adding a file there means
+adding its import line, and listing it in the README's Install section.
 
 Historical note: skills previously lived in `~/.agents/skills/` (unversioned) and were symlinked
 into `~/.claude/skills/`. This repo replaces that directory as the origin.

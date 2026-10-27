@@ -92,7 +92,7 @@ as-is rather than re-deriving them. Only in scope when the diff touches web UI.
 - **Speculative abstractions**: Interfaces or base classes with one implementation, helpers extracted for a single call site, indirection layers that just forward
 - **Unused surface**: Parameters, config options, feature flags, enum values, schema fields nothing reads
 - **Defensive code for impossible states**: Validating inputs already guaranteed by the caller, gate, or schema layer
-- **Noise**: Over-broad try/except, logging nobody will read, comments restating the code
+- **Noise**: Over-broad try/except, logging nobody will read, comments that explain the what instead of the why (comment the why, never the what: business rules, easy-to-miss dependencies, API quirks), and large comment blocks that should be small comments next to the code they describe
 - **Compat shims with no consumers**: Backwards-compatibility paths for code nothing calls
 - **Redundant tests**: Tests that duplicate other tests rather than the story's behavior, or that test a library instead of our use of it. Apply the ownership test: *if our code changed and the library didn't, could this assertion fail?* If only a library bug could make it fail — or it's unclear whether the behavior is ours or the library's — remove it; this is an exception to the question-first rule below
 - **Premature optimization**: Caching, batching, or tuning with no evidence of need

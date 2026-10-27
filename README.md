@@ -20,6 +20,17 @@ This symlinks each directory in `skills/` into `~/.claude/skills/`, so the repo 
 truth — edit a skill in either location and it's the same file, captured by `git` instead of lost
 on the next laptop. Then install the [dependencies](#dependencies) the skills you use require.
 
+`global/` holds always-on instructions that apply to every session, not just when a skill loads.
+Import each one from `~/.claude/CLAUDE.md`, using the path to your clone:
+
+```
+@~/Development/my-agentic-workflow/global/COMMENTS.md
+```
+
+| File | What it does |
+|---|---|
+| `COMMENTS.md` | Comment the why, never the what; small comments next to the code over big header blocks. |
+
 ## The skills
 
 They're built to chain:
