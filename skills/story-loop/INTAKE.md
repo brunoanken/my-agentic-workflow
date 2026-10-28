@@ -39,9 +39,11 @@ with — read them.
 User-stories docs, `/review-pr` findings, checklists, a Linear issue with a task list, an epic with
 sub-issues.
 
-1. **Normalize** into an ordered list: id, title, acceptance criteria, dependencies. Preserve the
-   source's own ordering and ids — the loop writes status back into the source doc later, so the ids
-   must match.
+1. **Normalize** into an ordered list: id, title, acceptance criteria, dependencies, and the
+   tracker issue it maps to, if any — an epic's sub-issue, a task list's ticket, or the PR's linked
+   issue for review findings. The loop moves that issue to in-progress when the item starts.
+   Preserve the source's own ordering and ids — the loop writes status back into the source doc
+   later, so the ids must match.
 2. **Check real repo state**, not the status column: `git log`, `gh pr list --state open`,
    `git branch -a`. A doc that says "Story 3: Not started" while an open PR implements it is a
    conflict, not a starting point. Status columns go stale; the repo does not.
@@ -66,7 +68,8 @@ non-blocking by default, log it, keep moving.
    forward. For a genuinely small source (one Linear ticket, one bug), a short inline list in the
    work folder is enough; don't ceremony it up.
 3. **Write the list to disk** in the work folder. The derived doc *becomes* the source doc: the loop
-   updates its status column, and the decisions doc and timing log sit beside it.
+   updates its status column, and the decisions doc and timing log sit beside it. If the source was
+   a tracker issue, every derived item carries it as its tracker issue.
 4. **Post the list, then go — do not wait for sign-off.** State it compactly in one message (item
    titles, one line each, plus anything you deliberately excluded and why) so it's visible and
    correctable, and immediately continue into implementation in the same turn. This is a decision

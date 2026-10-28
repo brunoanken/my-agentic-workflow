@@ -3,7 +3,7 @@ name: story-loop
 description: Run an autonomous implementation loop over a source of work — a user-stories doc, a PRD, a Linear issue, PR review findings, or a backend PR whose frontend impact must be derived. Resolves a run contract up front (scope, git policy, time tracking, PR self-review, autonomy), normalizes the source into an ordered work list, then drives research → implement → quality gates → verify → commit → PR → self-review-and-fix per item via sub-agents, logging decisions and open questions as it goes. Use when asked to work through stories autonomously, run the story loop, or implement a doc end to end.
 metadata:
   author: Bruno Zaninello
-  version: "1.4.0"
+  version: "1.5.0"
 ---
 
 # Story Loop
@@ -91,7 +91,8 @@ unless the invoking text asked for the gate. The only reason to halt is a *confl
 touching the same code from outside this run.
 
 Silent defaults, not asked: decisions doc **on** (see `DECISIONS.md`), quality gates **auto-selected**
-by what the staged diff actually touches.
+by what the staged diff actually touches, tracker ticket **set in progress** when its item starts
+(Step 3, step 1) unless the invoking text says to leave the ticket alone.
 
 **Ask about the unresolved knobs in a single `AskUserQuestion` call.** If the invoking text already
 settles them, ask nothing and go straight to Step 1. Never ask one at a time, and never ask about a
@@ -154,6 +155,16 @@ you go — see [Reporting to the Story Loop board](#reporting-to-the-story-loop-
 1. **Branch** — per the git policy. `branch-pr` checks out a fresh branch for this item only, cut
    from the previous item's branch (stacked); `branch-pr-from-trunk` cuts it from the trunk. Do not
    wait for anything upstream to merge first.
+   - **Claim the ticket** — if intake mapped the item to a tracker issue (Linear, Jira, GitHub
+     issue), move it to the tracker's in-progress state now, under every git policy. Linear:
+     `save_issue` with `state: "started"`, or the "In Progress" state from `list_issue_statuses`
+     if the team has several started states. Jira: the transition into the "In Progress" status
+     category. A tracker with no in-progress state (a plain GitHub issue outside a Project) is
+     left alone. **Only ever move it forward** — a ticket already started, in review, done, or
+     canceled stays put, which covers resumed runs and items sharing one ticket. Never move it
+     past in-progress; later states belong to the PR merge and the people reviewing it.
+     Best-effort: if the tracker is unavailable or the call fails, say so in the end-of-session
+     summary and carry on.
 2. **Research** — read-only `Explore` sub-agent for anything non-trivial. Require concrete code
    excerpts with `file:line` refs so you never re-read the files yourself.
    - **UI items: accessibility is part of research, not a later gate.** If the item already has an

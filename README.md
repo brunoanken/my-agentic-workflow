@@ -95,7 +95,7 @@ None of these are bundled. Install what the skills you actually use require.
 | **Linear** | `create-pr`, `story-loop`, `review-pr` | <https://mcp.linear.app/sse> |
 | **Chrome DevTools** | `review-accessibility` *(optional — adds a Lighthouse audit and accessibility-tree snapshot when a dev server is already running; falls back to static review)* | <https://github.com/ChromeDevTools/chrome-devtools-mcp> |
 
-Where a skill mentions an issue tracker generically (`review-pr`, `create-pr`), any equivalent MCP
+Where a skill mentions an issue tracker generically (`review-pr`, `create-pr`, `story-loop`), any equivalent MCP
 or CLI works — Jira, GitHub issues, `gh`. Linear is just what I use.
 
 ### Third-party skills

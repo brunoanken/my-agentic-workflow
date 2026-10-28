@@ -17,6 +17,18 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-10-28 — story-loop claims its ticket
+
+`story-loop` already read the tracker issue behind a source for context, but left its status alone,
+so a ticket being actively worked still sat in Todo.
+
+### Changed
+
+- `story-loop` (1.5.0) — when an item starts, its tracker issue (Linear, Jira, GitHub issue) moves
+  to in-progress. Intake records each item's issue. Forward-only: a ticket already started, in
+  review, done, or canceled is left alone, and the loop never moves one past in-progress.
+  Best-effort; a failed update is reported, not a stop.
+
 ## 2026-10-27 — Comment rules for every session, and tests that don't test libraries
 
 Agents over-comment, explaining what the code does instead of why. That's a rule for every session,
