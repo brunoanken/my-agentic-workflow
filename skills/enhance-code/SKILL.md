@@ -77,6 +77,10 @@ as-is rather than re-deriving them. Only in scope when the diff touches web UI.
 
 ### Maintainability
 - **DRY violations**: Duplicated logic that should be extracted
+- **Parallel types**: A new type, schema, DTO, or model whose fields overlap an existing one's,
+  when one type would do: extend or reuse the existing one. This applies even when the existing
+  type is outside the diff. Reading code the diff didn't touch is how you find it. A telltale
+  sign: code that copies fields one by one from one type into another (`X(a=y.a, b=y.b)`)
 - **Magic strings/numbers**: Hardcoded values that should be constants
 - **Idiomatic patterns**: Code that could use language/framework conventions
 - **Readability**: Overly complex expressions that could be simplified

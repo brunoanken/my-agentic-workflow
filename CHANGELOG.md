@@ -17,6 +17,23 @@ Entries are grouped by date, and each line names the skill it touches.
 
 ---
 
+## 2026-11-12 — catch parallel types before and after implementing
+
+An agent-written PR added a new slot type that repeated an existing one's fields plus one more,
+then copied fields from one into the other. It got through research, implementation, and several
+reviews. The research sketch proposed it, the ticket's "other fields don't change" was read as
+freezing the existing type's shape, and `enhance-code`'s DRY check only looked for duplicated logic
+inside the diff.
+
+### Changed
+
+- `story-loop` (1.6.0) — research names the closest existing type or helper for every new one it
+  proposes, and says why it extends it or adds a new one. `INTAKE.md` reads "doesn't change" in a
+  contract as values and meaning, not shape: extend the existing type unless a consumer validates
+  strictly.
+- `enhance-code` — new "Parallel types" maintainability check, including types outside the diff
+  and code that copies fields one by one from one type into another.
+
 ## 2026-10-28 — story-loop claims its ticket
 
 `story-loop` already read the tracker issue behind a source for context, but left its status alone,

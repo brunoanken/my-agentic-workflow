@@ -34,6 +34,15 @@ Use the Linear MCP tools when a ticket is referenced (`mcp__linear-server__get_i
 `get_document`, `list_comments`). Comments often carry decisions the description never got updated
 with — read them.
 
+## Reading "doesn't change" in a contract
+
+Tickets often say "other fields don't change" or "existing fields stay the same." Read that as
+*values and meaning* don't change. It doesn't freeze an object's shape. Adding a field to an
+existing response object is backward-compatible unless a consumer validates strictly (a strict
+schema, a closed enum, an exact-keys check); confirm which by reading the consumer. When the new
+work needs a shape that's an existing one plus a field, extend the existing type instead of
+adding a parallel one beside it. Record the call in the decisions doc.
+
 ## Branch A — the source already enumerates items
 
 User-stories docs, `/review-pr` findings, checklists, a Linear issue with a task list, an epic with

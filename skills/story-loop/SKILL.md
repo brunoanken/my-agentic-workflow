@@ -3,7 +3,7 @@ name: story-loop
 description: Run an autonomous implementation loop over a source of work — a user-stories doc, a PRD, a Linear issue, PR review findings, or a backend PR whose frontend impact must be derived. Resolves a run contract up front (scope, git policy, time tracking, PR self-review, autonomy), normalizes the source into an ordered work list, then drives research → implement → quality gates → verify → commit → PR → self-review-and-fix per item via sub-agents, logging decisions and open questions as it goes. Use when asked to work through stories autonomously, run the story loop, or implement a doc end to end.
 metadata:
   author: Bruno Zaninello
-  version: "1.5.0"
+  version: "1.6.0"
 ---
 
 # Story Loop
@@ -167,6 +167,12 @@ you go — see [Reporting to the Story Loop board](#reporting-to-the-story-loop-
      summary and carry on.
 2. **Research** — read-only `Explore` sub-agent for anything non-trivial. Require concrete code
    excerpts with `file:line` refs so you never re-read the files yourself.
+   - **Reuse check on the sketch.** For every new type, schema, DTO, or helper the research
+     proposes, the brief names the closest existing one (`file:line`) and says why the change
+     extends it or why it needs a new one. A new type that repeats an existing one's fields, or a
+     constructor that copies fields across (`X(a=y.a, b=y.b)`), means the two should be one type.
+     The implementer works from this sketch without re-deriving it, so the research step is where a
+     duplicate gets designed in. Catch it here.
    - **UI items: accessibility is part of research, not a later gate.** If the item already has an
      Accessibility section (stories written by `write-user-stories`), the brief carries its criteria
      forward. If it doesn't (review findings, a Linear ticket, an inline list), the research sub-agent
